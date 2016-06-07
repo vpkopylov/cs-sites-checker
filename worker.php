@@ -1,7 +1,7 @@
 #!/usr/bin/php
 <?php
 spl_autoload_register(function ($class) {
-    $class = __DIR__ . '/' . str_replace('\\', '/', $class) . '.php';
+    $class = __DIR__ . '/classes/' . str_replace('\\', '/', $class) . '.php';
     require_once($class);
 });
 
