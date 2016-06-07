@@ -11,16 +11,16 @@ use SitesChecker\Exceptions\InternalException;
 class ClientApplication extends AConsoleApplication
 {
 
-    const USAGE = 
+    protected  $usage = 
 'Parse csv file with urls and create csv file with sites that use cs-cart
 Usage:
 cs-sites-checker.php -i INPUTFILE -o OUTPUTFILE
 -i|--input-file             - csv file with urls
 -o|--output-file            - output csv file';
     
-    const OPTIONS_SHORT = 'i:o:';
+    protected $options_short = 'i:o:';
     
-    const OPTIONS_LONG = array(
+    protected $options_long = array(
         'input-file:',
         'output-file:'
     );

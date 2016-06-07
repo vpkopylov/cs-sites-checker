@@ -10,20 +10,20 @@ use SitesChecker\Exceptions\CliArgException;
  */
 abstract class AConsoleApplication
 {
-
-    const USAGE = null;
+        
+    protected $options_short = null;
     
-    const OPTIONS_SHORT = null;
-    
-    const OPTIONS_LONG = array();
+    protected $options_long = array();
 
     protected $options = null;
+    
+    protected $usage = null;    
     
     protected $usage_error = null;
 
     public function __construct()
     {
-        $this->options = getopt(static::OPTIONS_SHORT, static::OPTIONS_LONG);
+        $this->options = getopt($this->options_short, $this->options_long);
     }
 
     public function usageString()
@@ -33,7 +33,7 @@ abstract class AConsoleApplication
         if ($this->usage_error) {
             $result.= $this->usage_error . "\n";
         }
-        $result.= static::USAGE;
+        $result.= $this->usage;
         
         return $result;
     }
