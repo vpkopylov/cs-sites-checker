@@ -4,8 +4,6 @@ namespace SitesChecker\Console;
 
 use SitesChecker\Client;
 
-use SitesChecker\Exceptions\InternalException;
-
 /**
  * Description of ConsoleApplication
  *

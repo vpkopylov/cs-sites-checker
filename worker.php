@@ -10,7 +10,7 @@ try {
     $app->parseOptions();
     $app->execute();
 } catch (\Exception $e) {
-    $message = $e instanceof \SitesChecker\Exceptions\CliArgException ?
+    $message = $e instanceof \SitesChecker\Console\ArgException ?
         $app->usageString() : 'Fatal error: ' . $e->getMessage();
     echo $message . "\n";
     return false;

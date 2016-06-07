@@ -2,8 +2,6 @@
 
 namespace SitesChecker;
 
-use SitesChecker\Exceptions\InternalException;
-
 /**
  * Description of Client
  *
@@ -41,7 +39,7 @@ class Client extends \GearmanClient
     {
         $this->input_file_handle = @fopen($this->input_file_name, 'r');
         if (!$this->input_file_handle) {
-            throw new InternalException('Unable to open ' . $this->input_file_name);
+            throw new Exception('Unable to open ' . $this->input_file_name);
         }
         //FIXME: Add an option not to skip the first line
         //Skip header
