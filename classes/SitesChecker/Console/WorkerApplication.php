@@ -1,6 +1,8 @@
 <?php
 
-namespace SitesChecker;
+namespace SitesChecker\Console;
+
+use SitesChecker\Worker;
 
 /**
  * Description of WorkerApllication

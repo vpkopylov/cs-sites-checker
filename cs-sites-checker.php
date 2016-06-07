@@ -5,7 +5,7 @@ spl_autoload_register(function ($class) {
     require_once($class);
 });
 
-$app = new \SitesChecker\ClientApplication();
+$app = new \SitesChecker\Console\ClientApplication();
 try {
     $app->parseOptions();
     $app->execute();

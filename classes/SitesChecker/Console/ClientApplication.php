@@ -1,6 +1,8 @@
 <?php
 
-namespace SitesChecker;
+namespace SitesChecker\Console;
+
+use SitesChecker\Client;
 
 use SitesChecker\Exceptions\InternalException;
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace SitesChecker;
+namespace SitesChecker\Console;
 
 use SitesChecker\Exceptions\CliArgException;
 
