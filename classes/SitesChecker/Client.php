@@ -2,6 +2,8 @@
 
 namespace SitesChecker;
 
+use SitesChecker\Worker;
+
 /**
  * Description of Client
  *
@@ -16,7 +18,11 @@ class Client extends \GearmanClient
     
     protected $input_file_handle;
     
+    protected $output_file_handle;
+    
     protected $host_black_list = array('none', 'null', 'localhost');
+    
+    protected $completed_callback = null;
 
     public function __construct($input_file_name, $output_file_name)
     {
@@ -27,10 +33,30 @@ class Client extends \GearmanClient
 
         $this->addServer();
     }
+    
+    public function setCompleteCallback($callback) 
+    {
+        $this->completed_callback = $callback;
+        
+        parent::setCompleteCallback(array($this, 'onTaskComplete'));
+        
+    }
+    
+    public function onTaskComplete($task)
+    {
+        $result_data = json_decode($task->data());
+        if ($result_data->error_code == Worker::ERROR_OK) {
+            $put_data = array($result_data->site, $result_data->product_version);
+            fputs($this->output_file_handle, implode(',', $put_data) . "\n");
+        }
+        call_user_func($this->completed_callback, $task);
+    }    
 
     public function createTasks()
     {
         $this->openInputFile();
+        
+        $this->createOutputFile();
         
         while (($data = fgets($this->input_file_handle, self::READ_BUFF_SIZE)) !== false) {        
             $this->addTasksFromRow($data);
@@ -131,11 +157,17 @@ class Client extends \GearmanClient
         }
         return $sites_list;
     } 
-    
-    
-
+        
     protected function closeInputFile()
     {
         fclose($this->input_file_handle);
-    }    
+    }   
+    
+    protected function createOutputFile() {
+      
+        $this->output_file_handle = @fopen($this->output_file_name, 'w');
+        if (!$this->output_file_handle) {
+            throw new Exception('Unable to create ' . $this->output_file_name);
+        }        
+    }
 }
