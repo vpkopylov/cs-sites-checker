@@ -64,12 +64,13 @@ class Client extends \GearmanClient
             }
         }
 
-        if (count($task_sites_list) > 0) {
-            $task_sites_list = $this->removeWwwDuplicates($task_sites_list);
-            
+        if (count($task_sites_list) == 0) {
+            return;
         }
-        
-        foreach ($input_sites_list as $site) {
+
+        $task_sites_list = $this->removeWwwDuplicates($task_sites_list);
+                            
+        foreach ($task_sites_list as $site) {
                 $this->addTask('checkSite', $site);
         }         
     }
