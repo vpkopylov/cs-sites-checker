@@ -12,7 +12,7 @@ class Worker extends \GearmanWorker
     const TIMEOUT = 30;
     const ERROR_OK = 0;
     const ERROR_NETWORK = 1;
-    const ERROR_NOTCS = 1;
+    const ERROR_NOTCS = 2;
     
     protected $site = null;
 
