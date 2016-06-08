@@ -2,8 +2,6 @@
 
 namespace SitesChecker\Console;
 
-use SitesChecker\Console\ArgException;
-
 /**
  * Description of AConsoleApplication
  *
@@ -50,7 +48,7 @@ abstract class AConsoleApplication
         }
         if (!$value && $is_required) {
             $this->usage_error = "Option $short_name|$long_name is missing";
-            throw new ArgException($this->usage_error);
+            throw new InvalidArgumentException($this->usage_error);
         }
         
         $this->options[$long_name] = $value;
