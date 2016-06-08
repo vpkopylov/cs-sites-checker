@@ -38,7 +38,7 @@ cs-sites-checker.php -i INPUTFILE -o OUTPUTFILE
         $client = new Client($input_file, $output_file);
         
         $client->setCompleteCallback(array($this, 'onTaskComplete'));
-        $client->setFailCallback(array($this, 'onTaskFail'));        
+        $client->setFailCallback(array($this, 'onTaskFail'));                
         
         $client->createTasks();
         if (!$client->runTasks()) {
@@ -48,12 +48,13 @@ cs-sites-checker.php -i INPUTFILE -o OUTPUTFILE
     
     public function onTaskComplete($task)
     {
-        echo "Task completed: " . $task->jobHandle() . ", " . $task->data() . "\n";
+        echo 'Task completed: ' . $task->jobHandle() . ', ' . $task->data() . "\n";
     }
+    
 
     public function onTaskFail($task)
     {
-        echo "Task failed: " . $task->jobHandle() . "\n";
+        echo 'Task failed: ' . $task->jobHandle() . "\n";
     }    
 
 }
