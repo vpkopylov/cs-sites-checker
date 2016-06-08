@@ -12,12 +12,14 @@ class Worker extends \GearmanWorker
     const TIMEOUT = 30;
     const ERROR_OK = 0;
     const ERROR_NETWORK = 1;
-    const ERROR_NOTCS = 2;
+    const ERROR_NOTCART = 2;
     
     protected $site = null;
 
     protected $error_code = null;
+    
     protected $product_version = null;
+    
     protected $error_message = null;
 
     public function __construct()
@@ -31,21 +33,54 @@ class Worker extends \GearmanWorker
     {
         $this->site = $job->workload();
         $this->product_version = null;
-        $this->error_code = self::ERROR_OK;
+        $this->error_code = null;
         $this->error_message = null;
         $this->checkByVersionReq();
-
+        if ($this->error_code == self::ERROR_NOTCART) {
+            $this->checkByJsText();
+        }
+        
         return $this->serializeResult();
     }
 
     protected function checkByVersionReq()
     {
+        $url = $this->site . '/?version';
+        $curl_result = $this->makeRequest($url);
 
-        $result = false;
+        if ($curl_result !== false) {
+            $text = trim($curl_result);
+            $is_cart = mb_stripos($text, 'CS-Cart') === 0 || mb_stripos($text, 'Multi-Vendor') === 0;
+            if ($is_cart) {
+                $this->error_code = self::ERROR_OK;
+                $this->product_version = strip_tags($text);
+            } else {
+                $this->error_code = self::ERROR_NOTCART;
+            }
+        }
+    }
+    
+    protected function checkByJsText() 
+    {
+        $curl_result = $this->makeRequest($this->site);
+
+        if ($curl_result !== false) {
+            $text = trim($curl_result);
+            $is_cart = mb_stripos($text, '.runCart') !== false;
+            if ($is_cart) {
+                $this->error_code = self::ERROR_OK;
+                $this->product_version = 'Unknown';
+            } else {
+                $this->error_code = self::ERROR_NOTCART;
+            }
+        }        
+    }    
+
+    protected function makeRequest($url)
+    {
         
         $curl_resource = $this->initCurlSession();
 
-        $url = $this->site . '/?version';
         curl_setopt($curl_resource, CURLOPT_URL, $url);
 
         $curl_result = curl_exec($curl_resource);
@@ -53,13 +88,11 @@ class Worker extends \GearmanWorker
         if ($curl_result === false) {
             $this->error_code = self::ERROR_NETWORK;
             $this->error_message = curl_error($curl_resource);
-        } else {
-            $result = $this->checkVersionText($curl_result);
         }
 
         curl_close($curl_resource);
         
-        return $result;
+        return $curl_result;        
     }
 
     protected function initCurlSession()
@@ -75,19 +108,7 @@ class Worker extends \GearmanWorker
 
         return $resource;
     }
-
-    protected function checkVersionText($text)
-    {        
-        $text = trim($text);
-        $result = mb_stripos($text, 'CS-Cart') === 0 || mb_stripos($text, 'Multi-Vendor') === 0;
-        if ($result) {
-            $this->product_version = strip_tags($text);
-        } else {
-            $this->error_code = self::ERROR_NOTCS;
-        }
-        return $result;
-    }
-
+         
     protected function serializeResult()
     {
 
@@ -96,7 +117,7 @@ class Worker extends \GearmanWorker
         $result->error_code = $this->error_code;
         $result->product_version = $this->product_version;
         $result->error_message = $this->error_message;
-
+        
         return json_encode($result);
     }
 }
