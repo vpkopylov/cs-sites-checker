@@ -169,11 +169,11 @@ class Client extends \GearmanClient
     {
         foreach ($sites_list as $key => $site) {
             $host = parse_url($site, PHP_URL_HOST);
-            if (mb_strpos($host, 'www.') === 0) {
+            if (mb_stripos($host, 'www.') === 0) {
                 continue;
             }
             $www_host = 'www.' . $host;
-            $www_site = str_replace($host, $www_host, $site);
+            $www_site = str_ireplace($host, $www_host, $site);
             if (in_array($www_site, $sites_list)) {
                 unset($sites_list[$key]);
             }
