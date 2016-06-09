@@ -3,11 +3,9 @@
 namespace SitesChecker\Console;
 
 use SitesChecker\Client;
+use SitesChecker\Worker;
 
-/**
- * Description of ConsoleApplication
- *
- */
+
 class ClientApplication extends AConsoleApplication
 {
 
@@ -25,6 +23,9 @@ cs-sites-checker.php -i INPUTFILE -o OUTPUTFILE
         'output-file:'
     );
     
+    protected $client = null;
+
+
     public function parseOptions()
     {
         $this->parseOption('i', 'input-file');
@@ -33,22 +34,35 @@ cs-sites-checker.php -i INPUTFILE -o OUTPUTFILE
 
     public function execute()
     {
+        $start_time = time();
+        
         $input_file = $this->options['input-file'];
         $output_file = $this->options['output-file'];
-        $client = new Client($input_file, $output_file);
+        $this->client = new Client($input_file, $output_file);
         
-        $client->setCompleteCallback(array($this, 'onTaskComplete'));
-        $client->setFailCallback(array($this, 'onTaskFail'));                
+        $this->client->setCompleteCallback(array($this, 'onTaskComplete'));
+        $this->client->setFailCallback(array($this, 'onTaskFail'));                
         
-        $client->createTasks();
-        if (!$client->runTasks()) {
-            throw new InternalException($client->error());
+        echo "Run worker(s) if you haven't done this yet \n";
+        echo "Creating tasks\n";
+        $this->client->createTasks();
+        echo "Running tasks\n";
+        if (!$this->client->runTasks()) {
+            throw new InternalException($this->client->error());
         }
+        
+        $end_time = time();
+        $spent_min = round(($end_time - $start_time) / 60, 2);
+        echo "Spent time $spent_min min\n";
     }
     
     public function onTaskComplete($task)
     {
-        echo 'Task completed: ' . $task->jobHandle() . ', ' . $task->data() . "\n";
+        $data = json_decode($task->data());
+        if ($data->error_code != Worker::ERROR_OK) {
+            echo 'Task completed with error: ' . $task->jobHandle() . ', ' . $task->data() . "\n";
+        }
+        printf("Tasks left: %u/%u\n", $this->client->tasksLeft(), $this->client->tasksTotal());
     }
     
 

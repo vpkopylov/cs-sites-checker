@@ -4,10 +4,7 @@ namespace SitesChecker;
 
 use SitesChecker\Worker;
 
-/**
- * Description of Client
- *
- */
+
 class Client extends \GearmanClient
 {
     const READ_BUFF_SIZE = 1000;
@@ -20,9 +17,19 @@ class Client extends \GearmanClient
     
     protected $output_file_handle;
     
-    protected $host_black_list = array('none', 'null', 'localhost');
+    protected $host_black_list = array(
+        'none',
+        'null',
+        'localhost',
+        'tbd',
+        'tbn'
+    );
     
     protected $completed_callback = null;
+    
+    protected $tasks_total = null;
+    
+    protected $tasks_left = null;
 
     public function __construct($input_file_name, $output_file_name)
     {
@@ -49,6 +56,9 @@ class Client extends \GearmanClient
             $put_data = array($result_data->site, $result_data->product_version);
             fputs($this->output_file_handle, implode(',', $put_data) . "\n");
         }
+        
+        $this->tasks_left--;
+        
         call_user_func($this->completed_callback, $task);
     }    
 
@@ -64,6 +74,16 @@ class Client extends \GearmanClient
             
         $this->closeInputFile();
     }
+    
+    public function tasksLeft() 
+    {
+        return $this->tasks_left;
+    }
+    
+    public function tasksTotal() {
+        
+     return $this->tasks_total;
+    }
 
     protected function openInputFile()
     {
@@ -78,7 +98,7 @@ class Client extends \GearmanClient
     
     protected function addTasksFromRow($data)
     {
-        $input_sites_list = explode(',',$data);
+        $input_sites_list = explode(',', $data);
 
         $task_sites_list = array();
 
@@ -95,10 +115,12 @@ class Client extends \GearmanClient
         }
 
         $task_sites_list = $this->removeWwwDuplicates($task_sites_list);
-                            
+
         foreach ($task_sites_list as $site) {
-                $this->addTask('checkSite', $site);
-        }         
+            $this->tasks_total++;
+            $this->addTask('checkSite', $site);
+        }
+        $this->tasks_left = $this->tasks_total;
     }
 
     protected function normalizeUrl($site)
@@ -113,8 +135,6 @@ class Client extends \GearmanClient
         $is_host = !$is_url && $this->isValidHost($result);
         
         if (!$is_url && !$is_host) {
-            //FIXME: remove direct output in this class
-            echo "$result  is not a valid url or domain name\n";
             return null;
         }
         
@@ -124,7 +144,6 @@ class Client extends \GearmanClient
 
         $host = parse_url($result, PHP_URL_HOST);
         if (in_array(mb_strtolower($host), $this->host_black_list)) {
-            echo "$result's  host is in the black list\n";
             return null;
         }
         
@@ -151,7 +170,6 @@ class Client extends \GearmanClient
             $www_host = 'www.' . $host;
             $www_site = str_replace($host, $www_host, $site);
             if (in_array($www_site, $sites_list)) {
-                echo "$site is a duplicate in  " . implode(',', $sites_list) . "\n";
                 unset($sites_list[$key]);
             }
         }
@@ -170,4 +188,5 @@ class Client extends \GearmanClient
             throw new Exception('Unable to create ' . $this->output_file_name);
         }        
     }
+    
 }

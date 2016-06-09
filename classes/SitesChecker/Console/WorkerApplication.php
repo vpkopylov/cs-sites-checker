@@ -4,10 +4,6 @@ namespace SitesChecker\Console;
 
 use SitesChecker\Worker;
 
-/**
- * Description of WorkerApllication
- *
- */
 class WorkerApplication extends AConsoleApplication
 {
 
@@ -22,6 +18,7 @@ class WorkerApplication extends AConsoleApplication
             }
         }
     }
+    
     public function parseOptions()
     {
         
