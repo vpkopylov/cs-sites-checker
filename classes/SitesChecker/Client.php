@@ -17,6 +17,15 @@ class Client extends \GearmanClient
     
     protected $output_file_handle;
     
+    protected $delim = ',';
+
+
+    protected $column_names = array(
+        'site_url',
+        'version'
+    );
+
+
     protected $host_black_list = array(
         'none',
         'null',
@@ -54,7 +63,7 @@ class Client extends \GearmanClient
         $result_data = json_decode($task->data());
         if ($result_data->error_code == Worker::ERROR_OK) {
             $put_data = array($result_data->site, $result_data->product_version);
-            fputs($this->output_file_handle, implode(',', $put_data) . "\n");
+            fputs($this->output_file_handle, implode($this->delim, $put_data) . "\n");
         }
         
         $this->tasks_left--;
@@ -98,7 +107,7 @@ class Client extends \GearmanClient
     
     protected function addTasksFromRow($data)
     {
-        $input_sites_list = explode(',', $data);
+        $input_sites_list = explode($this->delim, $data);
 
         $task_sites_list = array();
 
@@ -187,6 +196,7 @@ class Client extends \GearmanClient
         if (!$this->output_file_handle) {
             throw new Exception('Unable to create ' . $this->output_file_name);
         }        
+        fputs($this->output_file_handle, implode($this->delim, $this->column_names) . "\n");
     }
     
 }
