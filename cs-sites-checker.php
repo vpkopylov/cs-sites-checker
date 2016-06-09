@@ -1,17 +1,19 @@
 #!/usr/bin/php
 <?php
-spl_autoload_register(function ($class) {
-    $class = __DIR__ . '/classes/' . str_replace('\\', '/', $class) . '.php';
-    require_once($class);
-});
+$loader = require __DIR__ . '/vendor/autoload.php';
+$loader->add('SitesChecker', __DIR__ . '/classes');
 
-$app = new \SitesChecker\Console\ClientApplication();
+use SitesChecker\Console\RunCommand;
+use SitesChecker\Console\WorkerCommand;
+use Symfony\Component\Console\Application;
+
+$application = new Application();
 try {
-    $app->parseOptions();
-    $app->execute();
+    $application->add(new RunCommand);
+    $application->add(new WorkerCommand);
+    $application->run();
 } catch (\Exception $e) {
-    $message = $e instanceof \InvalidArgumentException ?
-        $app->usageString() : 'Fatal error: ' . $e->getMessage();
+    $message = 'Fatal error: ' . $e->getMessage();
     echo $message . "\n";
     return false;
 }
