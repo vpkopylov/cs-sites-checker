@@ -23,7 +23,7 @@ class WorkerCommand extends Command
         $output->writeln( 'Waiting for job...');
         while ($worker->work()) {
             if ($worker->returnCode() != GEARMAN_SUCCESS) {
-                $output->writeln ('Return code: ' . $worker->returnCode() . "\n");
+                $output->writeln ('Return code: ' . $worker->returnCode());
                 break;
             }
         }
