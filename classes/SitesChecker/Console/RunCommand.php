@@ -8,6 +8,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use SitesChecker\Client;
 use SitesChecker\Worker;
+use SitesChecker\Exception;
 
 
 class RunCommand extends Command
@@ -58,7 +59,7 @@ class RunCommand extends Command
         $this->client->createTasks();
         $output->writeln ("Running tasks");
         if (!$this->client->runTasks()) {
-            throw new InternalException($this->client->error());
+            throw new Exception($this->client->error());
         }
         
         $end_time = time();
