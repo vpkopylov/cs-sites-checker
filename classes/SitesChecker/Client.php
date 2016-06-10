@@ -17,7 +17,7 @@ class Client extends \GearmanClient
     
     protected $output_file_handle;
     
-    protected $delim = ',';
+    protected $delimiter = ',';
     
     protected $column_names = array(
         'site_url',
@@ -58,7 +58,7 @@ class Client extends \GearmanClient
         $result_data = json_decode($task->data());
         if ($result_data->error_code == Worker::ERROR_OK) {
             $put_data = array($result_data->site, $result_data->product_version);
-            fputs($this->output_file_handle, implode($this->delim, $put_data) . "\n");
+            fputs($this->output_file_handle, implode($this->delimiter, $put_data) . "\n");
         }
 
         $this->tasks_left--;
@@ -100,10 +100,25 @@ class Client extends \GearmanClient
         //Skip header
         fgets($this->input_file_handle, self::READ_BUFF_SIZE);
     }
+    
+    protected function closeInputFile()
+    {
+        fclose($this->input_file_handle);
+    }    
+    
+    protected function createOutputFile()
+    {
+
+        $this->output_file_handle = @fopen($this->output_file_name, 'w');
+        if (!$this->output_file_handle) {
+            throw new Exception('Unable to create ' . $this->output_file_name);
+        }
+        fputs($this->output_file_handle, implode($this->delimiter, $this->column_names) . "\n");
+    }    
 
     protected function addTasksFromRow($data)
     {
-        $input_sites_list = explode($this->delim, $data);
+        $input_sites_list = explode($this->delimiter, $data);
 
         $task_sites_list = array();
 
@@ -179,20 +194,5 @@ class Client extends \GearmanClient
             }
         }
         return $sites_list;
-    }
-
-    protected function closeInputFile()
-    {
-        fclose($this->input_file_handle);
-    }
-
-    protected function createOutputFile()
-    {
-
-        $this->output_file_handle = @fopen($this->output_file_name, 'w');
-        if (!$this->output_file_handle) {
-            throw new Exception('Unable to create ' . $this->output_file_name);
-        }
-        fputs($this->output_file_handle, implode($this->delim, $this->column_names) . "\n");
     }
 }
