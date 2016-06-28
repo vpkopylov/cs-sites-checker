@@ -64,6 +64,8 @@ class RunCommand extends Command
         
         $end_time = time();
         $spent_min = round(($end_time - $start_time) / 60, 2);
+        $output->writeln ("Writing totals");
+        $this->client->writeTotalsFile();
         $output->writeln ("Spent time $spent_min min");
     }
     

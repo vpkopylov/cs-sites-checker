@@ -8,6 +8,8 @@ class Worker extends \GearmanWorker
 
     const TIMEOUT = 15;
     
+    const UNKNOWN_VERSION_TEXT = 'Unknown version';
+    
     const ERROR_OK = 0;
     const ERROR_NETWORK = 1;
     const ERROR_NOTCART = 2;
@@ -22,7 +24,9 @@ class Worker extends \GearmanWorker
 
     protected $error_code = null;
     
-    protected $product_version = null;
+    protected $product_version_str = null;
+    
+    protected $product_version_major = null;
     
     protected $error_message = null;
 
@@ -37,7 +41,8 @@ class Worker extends \GearmanWorker
     {
         $this->site = $job->workload();
         echo "checking site $this->site\n";
-        $this->product_version = null;
+        $this->product_version_str = null;
+        $this->product_version_major = self::UNKNOWN_VERSION_TEXT;
         $this->error_code = null;
         $this->error_message = null;
         $this->checkByVersionReq();
@@ -56,7 +61,9 @@ class Worker extends \GearmanWorker
             $text = trim($curl_result);
             if ($this->isKnownProduct($text)) {
                 $this->error_code = self::ERROR_OK;
-                $this->product_version = strip_tags($text);
+                $this->product_version_str = strip_tags($text);
+                $num_version = (string) abs(filter_var($this->product_version_str, FILTER_SANITIZE_NUMBER_INT));
+                $this->product_version_major = $num_version == '0' ? self::UNKNOWN_VERSION_TEXT : $num_version[0];
             } else {
                 $this->error_code = self::ERROR_NOTCART;
             }
@@ -82,7 +89,7 @@ class Worker extends \GearmanWorker
             $is_cart = mb_stripos($text, '.runCart') !== false;
             if ($is_cart) {
                 $this->error_code = self::ERROR_OK;
-                $this->product_version = 'Unknown version';
+                $this->product_version_str = self::UNKNOWN_VERSION_TEXT;
             } else {
                 $this->error_code = self::ERROR_NOTCART;
             }
@@ -130,7 +137,8 @@ class Worker extends \GearmanWorker
         $result = new \stdClass();
         $result->site = $this->site;
         $result->error_code = $this->error_code;
-        $result->product_version = $this->product_version;
+        $result->product_version_str = $this->product_version_str;
+        $result->product_version_major = $this->product_version_major;
         $result->error_message = $this->error_message;
         
         return json_encode($result);
